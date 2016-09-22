@@ -2,17 +2,27 @@
 
 namespace Users\Controller;
 
-use Users\Form\LoginFilter;
-use Users\Form\LoginForm;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
 class LoginController extends AbstractActionController
 {
+    protected $_authservice;
+    protected $_storage;
+
+    public function getAuthService()
+    {
+        if (! $this->_authservice) {
+
+            $this->_authservice = $this->getServiceLocator()->get('AuthService');
+        }
+
+        return $this->_authservice;
+    }
 
     public function indexAction()
     {
-        $form = new LoginForm();
+        $form = $this->getServiceLocator()->get('LoginForm');
         return new ViewModel(
             array('form' => $form)
         );
@@ -20,7 +30,9 @@ class LoginController extends AbstractActionController
 
     public function confirmAction()
     {
-        return new ViewModel();
+        return new ViewModel(array(
+            'user_email' => $this->getAuthService()->getStorage()->read()
+        ));
     }
 
     public function processAction()
@@ -34,9 +46,7 @@ class LoginController extends AbstractActionController
 
         $post = $this->request->getPost();
 
-        $form = new LoginForm();
-        $inputFilter = new LoginFilter();
-        $form->setInputFilter($inputFilter);
+        $form = $this->getServiceLocator()->get('LoginForm');
 
         $form->setData($post);
         if (!$form->isValid()) {
@@ -47,11 +57,28 @@ class LoginController extends AbstractActionController
             $model->setTemplate('users/login/index');
             return $model;
         }
+        else {
+            $this->getAuthService()->getAdapter()
+                ->setIdentity($this->request->getPost('email'))
+                ->setCredential($this->request->getPost('password'));
+            $result = $this->getAuthService()->authenticate();
 
-        return $this->redirect()->toRoute(NULL , array(
-            'controller' => 'login',
-            'action' =>  'confirm'
-        ));
+            if ($result->isValid()) {
+                $this->getAuthService()->getStorage()->write($this->request->getPost('email'));
+                return $this->redirect()->toRoute(NULL , array(
+                    'controller' => 'login',
+                    'action' =>  'confirm'
+                ));
+            }
+            else {
+                $model = new ViewModel(array(
+                    'error' => true,
+                    'form'  => $form,
+                ));
+                $model->setTemplate('users/login/index');
+                return $model;
+            }
+        }
     }
 }
 
