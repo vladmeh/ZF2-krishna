@@ -28,6 +28,7 @@ class Module
         );
     }
 
+
     public function getServiceConfig()
     {
         return array(
@@ -69,16 +70,22 @@ class Module
                     $form->setInputFilter($sm->get('RegisterFilter'));
                     return $form;
                 },
+                'UserEditForm' => function ($sm) {
+                    $form = new \Users\Form\UserEditForm();
+                    $form->setInputFilter($sm->get('UserEditFilter'));
+                    return $form;
+                },
 
                 // FILTERS
-                'LoginFilter' => function ($sm) {
+                'LoginFilter' => function () {
                     return new \Users\Form\LoginFilter();
                 },
-                'RegisterFilter' => function ($sm) {
+                'RegisterFilter' => function () {
                     return new \Users\Form\RegisterFilter();
-
                 },
-
+                'UserEditFilter' => function () {
+                    return new \Users\Form\UserEditFilter();
+                }
 
             ),
             'invokables' => array(),

@@ -15,6 +15,9 @@ use Zend\Db\TableGateway\TableGateway;
 
 class UserTable
 {
+    /**
+     * @var TableGateway
+     */
     protected $_tableGateway;
 
     public function __construct(TableGateway $tableGateway)
@@ -57,5 +60,34 @@ class UserTable
             throw new \Exception("Could not find row $id");
         }
         return $row;
+    }
+
+    /**
+     * @return ResultSet
+     */
+    public function fetchAll()
+    {
+        return $this->_tableGateway->select();
+    }
+
+    /**
+     * @param $userEmail
+     * @return array|\ArrayObject|null
+     * @throws \Exception
+     */
+    public function getUserByEmail($userEmail)
+    {
+        $rowset = $this->_tableGateway->select(array('email' => $userEmail));
+        $row = $rowset->current();
+        if (!$row) {
+            throw new \Exception("Could not find row $userEmail");
+        }
+        return $row;
+    }
+
+    public function deleteUser($id)
+    {
+        $this->_tableGateway->delete(array('id' => $id));
+        return $this;
     }
 }

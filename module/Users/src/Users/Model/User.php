@@ -24,13 +24,14 @@ class User
 
     function exchangeArray($data)
     {
+        $this->id		= (isset($data['id'])) ? $data['id'] : null;
         $this->name		= (isset($data['name'])) ? $data['name'] : null;
         $this->email	= (isset($data['email'])) ? $data['email'] : null;
-        //$this->date_created	= (isset($data['date_created'])) ? $data['date_created'] : null;
+        $this->password	= (isset($data['password'])) ? $data['password'] : null;
+    }
 
-        if (isset($data["password"]))
-        {
-            $this->setPassword($data["password"]);
-        }
+    public function getArrayCopy()
+    {
+        return get_object_vars($this);
     }
 }
