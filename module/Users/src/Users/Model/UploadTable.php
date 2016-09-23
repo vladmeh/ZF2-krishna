@@ -10,15 +10,18 @@
 namespace Users\Model;
 
 use Zend\Db\ResultSet\ResultSet;
+use Zend\Db\Sql\Select;
 use Zend\Db\TableGateway\TableGateway;
 
 class UploadTable
 {
     protected $_tableGateway;
+    protected $_uploadSharingTableGateway;
 
-    public function __construct(TableGateway $tableGateway)
+    public function __construct(TableGateway $tableGateway, TableGateway $uploadSharingTableGateway)
     {
         $this->_tableGateway = $tableGateway;
+        $this->_uploadSharingTableGateway = $uploadSharingTableGateway;
     }
 
     /**
@@ -93,4 +96,49 @@ class UploadTable
         );
     }
 
+    public function addSharing($uploadId, $userId)
+    {
+        $data = array(
+            'upload_id' => (int)$uploadId,
+            'user_id'  => (int)$userId,
+        );
+
+        try {
+            $this->_uploadSharingTableGateway->insert($data);
+        } catch (\Zend\Db\Adapter\Exception\InvalidQueryException $e) {
+            // Do nothing
+        }
+    }
+
+    public function removeSharing($uploadId, $userId)
+    {
+        $data = array(
+            'upload_id' => (int)$uploadId,
+            'user_id'  => (int)$userId,
+        );
+
+        $this->_uploadSharingTableGateway->delete($data);
+    }
+
+    public function getSharedUsers($uploadId)
+    {
+        $uploadId  = (int) $uploadId;
+
+        $rowset = $this->_uploadSharingTableGateway->select(array('upload_id' => $uploadId));
+
+        return $rowset;
+    }
+
+    public function getSharedUploadsForUserId($userId)
+    {
+        $userId  = (int) $userId;
+
+        $rowset = $this->_uploadSharingTableGateway->select(function (Select $select) use ($userId){
+            $select->columns(array()) // no columns from main table
+                ->where(array('uploads_sharing.user_id'=>$userId))
+                ->join('uploads', 'uploads_sharing.upload_id = uploads.id');
+        });
+
+        return $rowset;
+    }
 }
