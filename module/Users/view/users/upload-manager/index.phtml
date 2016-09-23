@@ -1,0 +1,22 @@
+<h2>My Uploads</h2>
+
+<table class="table">
+    <tr>
+        <th>Label</th>
+        <th>Filename</th>
+        <th>Actions</th>
+    </tr>
+    <?php foreach ($this->myUploads as $upload) : ?>
+        <tr>
+            <td><?php echo $this->escapeHtml($upload->label);?></td>
+            <td><?php echo $this->escapeHtml($upload->filename);?></td>
+            <td>
+                <a href="<?php echo $this->url('users/upload-manager',
+                    array('action'=>'delete', 'id' => $upload->id));?>" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</table>
+<hr />
+<a href="<?php echo $this->url('users/upload-manager',
+    array('action'=>'upload'));?>">&raquo; Add Upload</a>

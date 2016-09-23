@@ -6,6 +6,7 @@ return array(
             'Users\Controller\Register' => 'Users\Controller\RegisterController',
             'Users\Controller\Login' => 'Users\Controller\LoginController',
             'Users\Controller\UserManager' => 'Users\Controller\UserManagerController',
+            'Users\Controller\UploadManager' => 'Users\Controller\UploadManagerController',
         ),
     ),
 
@@ -72,8 +73,27 @@ return array(
                             ),
                         ),
                     ),
+                    'upload-manager' => array(
+                        'type'    => 'Segment',
+                        'may_terminate' => true,
+                        'options' => array(
+                            'route'    => '/upload-manager[/:action[/:id]]',
+                            'constraints' => array(
+                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'id'     => '[a-zA-Z0-9_-]*',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Users\Controller\UploadManager',
+                                'action'     => 'index',
+                            ),
+                        ),
+                    ),
                 ),
             ),
         ),
+    ),
+
+    'module_config' => array(
+        'upload_location' => __DIR__ . '/../data/uploads',
     ),
 );

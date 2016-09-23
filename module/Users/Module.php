@@ -1,6 +1,8 @@
 <?php
 namespace Users;
 
+use Users\Model\Upload;
+use Users\Model\UploadTable;
 use Users\Model\User;
 use Users\Model\UserTable;
 
@@ -59,6 +61,19 @@ class Module
                     return new TableGateway('user', $dbAdapter, null, $resultSetPrototype);
                 },
 
+                'UploadTable' => function ($sm) {
+                    $tableGateway = $sm->get('UploadTableGateway');
+                    $table = new UploadTable($tableGateway);
+                    return $table;
+                },
+                'UploadTableGateway' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    $resultSetPrototype = new ResultSet();
+                    $resultSetPrototype->setArrayObjectPrototype(new Upload());
+
+                    return new TableGateway('uploads', $dbAdapter, null, $resultSetPrototype);
+                },
+
                 // FORMS
                 'LoginForm' => function ($sm) {
                     $form = new \Users\Form\LoginForm();
@@ -73,6 +88,10 @@ class Module
                 'UserEditForm' => function ($sm) {
                     $form = new \Users\Form\UserEditForm();
                     $form->setInputFilter($sm->get('UserEditFilter'));
+                    return $form;
+                },
+                'UploadForm' => function ($sm) {
+                    $form = new \Users\Form\UploadForm();
                     return $form;
                 },
 
