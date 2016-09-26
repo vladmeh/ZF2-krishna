@@ -11,12 +11,12 @@
     <?php
     $form = $this->form;
     $form->prepare();
-    $form->setAttribute('action', $this->url(NULL, array('controller'=>'UploadManager', 'action' => 'processUpload')));
+    $form->setAttribute('action', $this->url(NULL, array('controller'=>'UploadManager', 'action' => 'processUpdate')));
     $form->setAttribute('method', 'post');
 
     echo $this->form()->openTag($form);
     ?>
-
+    <?php echo $this->formElement($form->get('id')); ?>
     <table class="table">
 
         <tr>

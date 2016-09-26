@@ -20,6 +20,13 @@ class UploadEditForm extends Form
         $this->setAttribute('enctype','multipart/form-data');
 
         $this->add(array(
+            'name' => 'id',
+            'attributes' => array(
+                'type'  => 'hidden',
+            ),
+        ));
+
+        $this->add(array(
             'name' => 'label',
             'attributes' => array(
                 'type'  => 'text',

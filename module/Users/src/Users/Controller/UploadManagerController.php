@@ -2,8 +2,22 @@
 
 namespace Users\Controller;
 
+use Zend\File\Transfer\Adapter\Http;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
+
+use Zend\Http\Headers;
+
+use Zend\Authentication\AuthenticationService;
+use Zend\Authentication\Adapter\DbTable as DbTableAuthAdapter;
+
+use Users\Form\RegisterForm;
+use Users\Form\RegisterFilter;
+
+use Users\Model\User;
+use Users\Model\UserTable;
+use Users\Model\Upload;
+
 
 class UploadManagerController extends AbstractActionController
 {
@@ -18,111 +32,127 @@ class UploadManagerController extends AbstractActionController
     public function getAuthService()
     {
         if(!$this->_authservice){
-                    $this->_authservice = $this->getServiceLocator()->get('AuthService');
-                }
-                return $this->_authservice;
+            $this->_authservice = $this->getServiceLocator()->get('AuthService');
+        }
+        return $this->_authservice;
     }
 
+    /**
+     * @return mixed
+     */
     public function getFileUploadLocation()
     {
         // Fetch Configuration from Module Config
-                $config  = $this->getServiceLocator()->get('config');
-                return $config['module_config']['upload_location'];
+        $config  = $this->getServiceLocator()->get('config');
+        return $config['module_config']['upload_location'];
     }
 
     public function indexAction()
     {
+        $this->layout('layout/myaccount');
+
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
-                $userTable = $this->getServiceLocator()->get('UserTable');
+        $userTable = $this->getServiceLocator()->get('UserTable');
 
-                $userEmail = $this->getAuthService()->getStorage()->read();
-                $user = $userTable->getUserByEmail($userEmail);
+        $userEmail = $this->getAuthService()->getStorage()->read();
+        $user = $userTable->getUserByEmail($userEmail);
 
-                $sharedUploads = $uploadTable->getSharedUploadsForUserId($user->id);
-                $sharedUploadsList = array();
-                foreach($sharedUploads as $sharedUpload) {
-                    $uploadOwner = $userTable->getUser($sharedUpload->user_id);
-                    $sharedUploadInfo = array();
-                    $sharedUploadInfo['label'] = $sharedUpload->label;
-                    $sharedUploadInfo['owner'] = $uploadOwner->name;
-                    $sharedUploadsList[$sharedUpload->id] = $sharedUploadInfo;
-                }
+        $sharedUploads = $uploadTable->getSharedUploadsForUserId($user->id);
+        $sharedUploadsList = array();
+        foreach($sharedUploads as $sharedUpload) {
+            $uploadOwner = $userTable->getUser($sharedUpload->user_id);
+            $sharedUploadInfo = array();
+            $sharedUploadInfo['label'] = $sharedUpload->label;
+            $sharedUploadInfo['owner'] = $uploadOwner->name;
+            $sharedUploadsList[$sharedUpload->id] = $sharedUploadInfo;
+        }
 
-                return new ViewModel(
-                    array(
-                        'myUploads' => $uploadTable->getUploadsByUserId($user->id),
-                        'sharedUploadsList' => $sharedUploadsList,
-                    )
-                );
+        return new ViewModel(
+            array(
+                'myUploads' => $uploadTable->getUploadsByUserId($user->id),
+                'sharedUploadsList' => $sharedUploadsList,
+            )
+        );
     }
 
     public function uploadAction()
     {
+        $this->layout('layout/myaccount');
+
         return new ViewModel(array(
-                    'form' => $this->getServiceLocator()->get('UploadForm')
-                ));
+            'form' => $this->getServiceLocator()->get('UploadForm')
+        ));
     }
 
     public function processUploadAction()
     {
+        $this->layout('layout/myaccount');
+
         $userTable = $this->getServiceLocator()->get('UserTable');
-                $user_email = $this->getAuthService()->getStorage()->read();
-                $user = $userTable->getUserByEmail($user_email);
-                $form = $this->getServiceLocator()->get('UploadForm');
-                $request = $this->getRequest();
+        $user_email = $this->getAuthService()->getStorage()->read();
+        $user = $userTable->getUserByEmail($user_email);
 
-                if($request->getPost()){
-                    $upload = new Upload();
-                    $uploadFile = $this->params()->fromFiles('fileupload');
-                    $form->setData($request->getPost());
+        $request = $this->getRequest();
 
-                    if($form->isValid()){
-                        $uploadPath = $this->getFileUploadLocation();
-                        //\Zend\Debug\Debug::dump($uploadPath);die();
+        //\Zend\Debug\Debug::dump($request->getPost());die();
 
-                        $adapter = new Http();
-                        $adapter->setDestination($uploadPath);
+        $form = $this->getServiceLocator()->get('UploadForm');
 
-                        if ($adapter->receive($uploadFile['name'])) {
+        if ($request->isPost()) {
+            $upload = new Upload();
+            $uploadFile    = $this->params()->fromFiles('fileupload');
+            $form->setData($request->getPost());
 
-                            $exchange_data = array();
-                            $exchange_data['label'] = $request->getPost()->get('label');
-                            $exchange_data['filename'] = $uploadFile['name'];
-                            $exchange_data['user_id'] = $user->id;
+            if ($form->isValid()) {
+                // Fetch Configuration from Module Config
+                $uploadPath    = $this->getFileUploadLocation();
+                // Save Uploaded file
+                $adapter = new Http();
+                $adapter->setDestination($uploadPath);
 
-                            $upload->exchangeArray($exchange_data);
+                if ($adapter->receive($uploadFile['name'])) {
 
-                            $uploadTable = $this->getServiceLocator()->get('UploadTable');
-                            $uploadTable->saveUpload($upload);
+                    $exchange_data = array();
+                    $exchange_data['label'] = $request->getPost()->get('label');
+                    $exchange_data['filename'] = $uploadFile['name'];
+                    $exchange_data['user_id'] = $user->id;
 
-                            return $this->redirect()->toRoute('users/upload-manager' , array(
-                                'action' =>  'index'
-                            ));
-                        }
-                    }
+                    $upload->exchangeArray($exchange_data);
 
+                    $uploadTable = $this->getServiceLocator()->get('UploadTable');
+                    $uploadTable->saveUpload($upload);
 
+                    return $this->redirect()->toRoute('users/upload-manager' , array(
+                        'action' =>  'index'
+                    ));
                 }
+            }
+        }
+
+        return array('form' => $form);
     }
 
     public function deleteAction()
     {
         $this->layout('layout/myaccount');
-                $uploadId = $this->params()->fromRoute('id');
-                $uploadTable = $this->getServiceLocator()
-                    ->get('UploadTable');
-                $upload = $uploadTable->getUpload($uploadId);
-                $uploadPath    = $this->getFileUploadLocation();
-                // Remove File
-                unlink($uploadPath ."/" . $upload->filename);
-                // Delete Records
-                $uploadTable->deleteUpload($uploadId);
 
-                return $this->redirect()->toRoute('users/upload-manager');
+        $uploadId = $this->params()->fromRoute('id');
+        $uploadTable = $this->getServiceLocator()
+            ->get('UploadTable');
+        $upload = $uploadTable->getUpload($uploadId);
+        $uploadPath    = $this->getFileUploadLocation();
+        // Remove File
+        unlink($uploadPath ."/" . $upload->filename);
+        // Delete Records
+        $uploadTable->deleteUpload($uploadId);
+
+        return $this->redirect()->toRoute('users/upload-manager');
     }
 
     public function editAction()
     {
+        $this->layout('layout/myaccount');
+
         $uploadId = $this->params()->fromRoute('id');
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
         $userTable = $this->getServiceLocator()->get('UserTable');
@@ -160,6 +190,76 @@ class UploadManagerController extends AbstractActionController
         );
     }
 
+    public function processUploadShareAction()
+    {
+        $this->layout('layout/myaccount');
+
+        $userTable = $this->getServiceLocator()->get('UserTable');
+        $uploadTable = $this->getServiceLocator()->get('UploadTable');
+
+        $form = $this->getServiceLocator()->get('UploadForm');
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $userId = $request->getPost()->get('user_id');
+            $uploadId = $request->getPost()->get('upload_id');
+            $uploadTable->addSharing($uploadId, $userId);
+            return $this->redirect()->toRoute('users/upload-manager',array(	'action' =>  'edit','id' =>  $uploadId));
+        }
+    }
+
+    public function fileDownloadAction()
+    {
+        $uploadId = $this->params()->fromRoute('id');
+        $uploadTable = $this->getServiceLocator()->get('UploadTable');
+        $upload = $uploadTable->getUpload($uploadId);
+
+        // Fetch Configuration from Module Config
+        $uploadPath    = $this->getFileUploadLocation();
+        $file = file_get_contents($uploadPath ."/" . $upload->filename);
+
+        // Directly return the Response
+        $response = $this->getEvent()->getResponse();
+        $response->getHeaders()->addHeaders(array(
+            'Content-Type' => 'application/octet-stream',
+            'Content-Disposition' => 'attachment;filename="' .$upload->filename . '"',
+        ));
+        $response->setContent($file);
+
+        return $response;
+    }
+
+    public function processUpdateAction()
+    {
+        $this->layout('layout/myaccount');
+
+        if (!$this->request->isPost()) {
+            return $this->redirect()->toRoute('users/upload-manager');
+        }
+
+        $post = $this->request->getPost();
+        $uploadTable = $this->getServiceLocator()->get('UploadTable');
+        $upload = $uploadTable->getUpload($post->id);
+
+        \Zend\Debug\Debug::dump($upload);die();
+
+        /*$form = $this->getServiceLocator()->get('UploadEditForm');
+        $form->bind($upload);
+        $form->setData($post);
+
+        if (!$form->isValid()) {
+            $model = new ViewModel(array(
+                'error' => true,
+                'form'  => $form,
+            ));
+            $model->setTemplate('users/update-manager/edit');
+            return $model;
+        }
+
+        $this->getServiceLocator()->get('UploadTable')->saveUpload($upload);
+
+        return $this->redirect()->toRoute('users/upload-manager');*/
+
+    }
 
 }
 

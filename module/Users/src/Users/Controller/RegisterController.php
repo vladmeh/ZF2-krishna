@@ -26,10 +26,7 @@ class RegisterController extends AbstractActionController
     public function processAction()
     {
         if (!$this->request->isPost()) {
-            return $this->redirect()->toRoute(NULL , array(
-                'controller' => 'register',
-                'action' =>  'index'
-            ));
+            return $this->redirect()->toRoute('users/register');
         }
 
         $post = $this->request->getPost();
@@ -49,8 +46,7 @@ class RegisterController extends AbstractActionController
         // Create user
         $this->createUser($form->getData());
 
-        return $this->redirect()->toRoute(NULL , array(
-            'controller' => 'register',
+        return $this->redirect()->toRoute('users/register' , array(
             'action' =>  'confirm'
         ));
     }

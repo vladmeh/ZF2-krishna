@@ -14,6 +14,10 @@ return array(
         'template_path_stack' => array(
             'users' => __DIR__ . '/../view',
         ),
+        'template_map' => array(
+            'layout/layout'           => __DIR__ . '/../view/layout/default-layout.phtml',
+            'layout/myaccount'           => __DIR__ . '/../view/layout/myaccount-layout.phtml',
+        ),
     ),
 
     'router' => array(
@@ -95,5 +99,47 @@ return array(
 
     'module_config' => array(
         'upload_location' => __DIR__ . '/../data/uploads',
+    ),
+
+    'navigation' => array(
+        'default' => array(
+            array(
+                'label' => 'Home',
+                'route' => 'users',
+            ),
+            array(
+                'label' => 'Login',
+                'route' => 'users/login',
+            ),
+            array(
+                'label' => 'Register',
+                'route' => 'users/register',
+            ),
+        ),
+        'account' => array(
+            array(
+                'label' => 'Home',
+                'route' => 'users',
+            ),
+            array(
+                'label' => 'Manage Users',
+                'route' => 'users/user-manager',
+            ),
+            array(
+                'label' => 'Manage Documents',
+                'route' => 'users/upload-manager',
+            ),
+            array(
+                'label' => 'Logout',
+                'route' => 'users/login',
+                'action' => 'logout'
+            ),
+        )
+    ),
+    'service_manager' => array(
+        'factories' => array(
+            'navigation' => 'Zend\Navigation\Service\DefaultNavigationFactory',
+            'account' => 'Users\Navigation\Service\AccountNavigationFactory',
+        ),
     ),
 );

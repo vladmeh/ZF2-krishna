@@ -20,6 +20,13 @@ class LoginController extends AbstractActionController
         return $this->_authservice;
     }
 
+    public function logoutAction()
+    {
+        $this->getAuthService()->clearIdentity();
+
+        return $this->redirect()->toRoute('users/login');
+    }
+
     public function indexAction()
     {
         $form = $this->getServiceLocator()->get('LoginForm');
@@ -30,6 +37,7 @@ class LoginController extends AbstractActionController
 
     public function confirmAction()
     {
+        $this->layout('layout/myaccount');
         return new ViewModel(array(
             'user_email' => $this->getAuthService()->getStorage()->read()
         ));
@@ -38,10 +46,7 @@ class LoginController extends AbstractActionController
     public function processAction()
     {
         if (!$this->request->isPost()) {
-            return $this->redirect()->toRoute(NULL , array(
-                'controller' => 'register',
-                'action' =>  'index'
-            ));
+            return $this->redirect()->toRoute('users/login');
         }
 
         $post = $this->request->getPost();
@@ -65,8 +70,7 @@ class LoginController extends AbstractActionController
 
             if ($result->isValid()) {
                 $this->getAuthService()->getStorage()->write($this->request->getPost('email'));
-                return $this->redirect()->toRoute(NULL , array(
-                    'controller' => 'login',
+                return $this->redirect()->toRoute('users/login' , array(
                     'action' =>  'confirm'
                 ));
             }
