@@ -47,7 +47,7 @@
             <th>Shared User</th>
             <th>Actions</th>
         </tr>
-        <?php foreach ($sharedUsers as $shareId => $userName) : ?>
+        <?php foreach ($this->sharedUsers as $shareId => $userName) : ?>
             <tr>
                 <td><?php echo $this->escapeHtml($userName);?></td>
                 <td>

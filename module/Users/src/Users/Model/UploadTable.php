@@ -96,6 +96,17 @@ class UploadTable
         );
     }
 
+    public function getSharing($id)
+    {
+        $id = (int)$id;
+        $rowset = $this->_uploadSharingTableGateway->select(array('id' => $id));
+        $row = $rowset->current();
+        if (!$row) {
+            throw new \Exception("Could not find row $id");
+        }
+        return $row;
+    }
+
     public function addSharing($uploadId, $userId)
     {
         $data = array(
@@ -118,6 +129,12 @@ class UploadTable
         );
 
         $this->_uploadSharingTableGateway->delete($data);
+    }
+
+    public function deleteSharing($shareId)
+    {
+        $this->_uploadSharingTableGateway->delete(array('id' => $shareId));
+        return $this;
     }
 
     public function getSharedUsers($uploadId)

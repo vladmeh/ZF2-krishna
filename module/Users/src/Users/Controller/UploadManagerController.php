@@ -6,16 +6,7 @@ use Zend\File\Transfer\Adapter\Http;
 use Zend\Mvc\Controller\AbstractActionController;
 use Zend\View\Model\ViewModel;
 
-use Zend\Http\Headers;
-
-use Zend\Authentication\AuthenticationService;
 use Zend\Authentication\Adapter\DbTable as DbTableAuthAdapter;
-
-use Users\Form\RegisterForm;
-use Users\Form\RegisterFilter;
-
-use Users\Model\User;
-use Users\Model\UserTable;
 use Users\Model\Upload;
 
 
@@ -149,6 +140,24 @@ class UploadManagerController extends AbstractActionController
         return $this->redirect()->toRoute('users/upload-manager');
     }
 
+    public function deleteShareAction()
+    {
+        $this->layout('layout/myaccount');
+        $shareId = $this->params()->fromRoute('id');
+        $uploadTable = $this->getServiceLocator()
+            ->get('UploadTable');
+
+        $uploadId = $uploadTable->getSharing($shareId)->upload_id;
+        $uploadTable->deleteSharing($shareId);
+
+        return $this->redirect()->toRoute('users/upload-manager',
+            array(
+                'action' =>  'edit',
+                'id' =>  $uploadId
+            )
+        );
+    }
+
     public function editAction()
     {
         $this->layout('layout/myaccount');
@@ -194,10 +203,8 @@ class UploadManagerController extends AbstractActionController
     {
         $this->layout('layout/myaccount');
 
-        $userTable = $this->getServiceLocator()->get('UserTable');
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
 
-        $form = $this->getServiceLocator()->get('UploadForm');
         $request = $this->getRequest();
         if ($request->isPost()) {
             $userId = $request->getPost()->get('user_id');
@@ -240,10 +247,7 @@ class UploadManagerController extends AbstractActionController
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
         $upload = $uploadTable->getUpload($post->id);
 
-        \Zend\Debug\Debug::dump($upload);die();
-
-        /*$form = $this->getServiceLocator()->get('UploadEditForm');
-        $form->bind($upload);
+        $form = $this->getServiceLocator()->get('UploadEditForm');
         $form->setData($post);
 
         if (!$form->isValid()) {
@@ -255,9 +259,16 @@ class UploadManagerController extends AbstractActionController
             return $model;
         }
 
+        $upload->label = $post->label;
+
         $this->getServiceLocator()->get('UploadTable')->saveUpload($upload);
 
-        return $this->redirect()->toRoute('users/upload-manager');*/
+        return $this->redirect()->toRoute('users/upload-manager',
+            array(
+                'action' =>  'edit',
+                'id' =>  $upload->id
+            )
+        );
 
     }
 
