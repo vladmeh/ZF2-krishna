@@ -25,3 +25,10 @@ CREATE TABLE IF NOT EXISTS uploads_sharing (
   user_id INT NOT NULL ,
   UNIQUE KEY (upload_id, user_id)
 );
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  message VARCHAR(255) NOT NULL,
+  stamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
