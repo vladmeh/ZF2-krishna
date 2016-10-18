@@ -10,8 +10,6 @@ class UserManagerController extends AbstractActionController
 
     public function indexAction()
     {
-        $this->layout('layout/myaccount');
-
         $userTable = $this->getServiceLocator()->get('UserTable');
         return new ViewModel(array(
             'users' => $userTable->fetchAll()
@@ -20,8 +18,6 @@ class UserManagerController extends AbstractActionController
 
     public function editAction()
     {
-        $this->layout('layout/myaccount');
-
         $userTable = $this->getServiceLocator()->get('UserTable');
         $user = $userTable->getUser($this->params()->fromRoute('id'));
         $form = $this->getServiceLocator()->get('UserEditForm');
@@ -35,8 +31,6 @@ class UserManagerController extends AbstractActionController
 
     public function processAction()
     {
-        $this->layout('layout/myaccount');
-
         if (!$this->request->isPost()) {
             return $this->redirect()->toRoute('users/user-manager', array('action' => 'edit'));
         }
@@ -65,8 +59,6 @@ class UserManagerController extends AbstractActionController
 
     public function deleteAction()
     {
-        $this->layout('layout/myaccount');
-
         $this->getServiceLocator()
             ->get('UserTable')
             ->deleteUser(

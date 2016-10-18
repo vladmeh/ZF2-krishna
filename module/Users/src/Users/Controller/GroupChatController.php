@@ -26,72 +26,75 @@ class GroupChatController extends AbstractActionController
     protected function getLoggedInUser()
     {
         $userTable = $this->getServiceLocator()->get('UserTable');
-                $userEmail = $this->getAuthService()->getStorage()->read();
-                $user = $userTable->getUserByEmail($userEmail);
+        $userEmail = $this->getAuthService()->getStorage()->read();
 
-                return $user;
+        if(!$userEmail){
+            return $this->redirect()->toRoute('users');
+        }
+
+        $user = $userTable->getUserByEmail($userEmail);
+
+        return $user;
     }
 
     protected function sendMessage($messageTest, $fromUserId)
     {
         $chatMessageTG = $this->getServiceLocator()->get('ChatMessagesTableGateway');
-                $data = array(
-                    'user_id' => $fromUserId,
-                    'message'  => $messageTest,
-                    'stamp' => NULL
-                );
-                $chatMessageTG->insert($data);
+        $data = array(
+            'user_id' => $fromUserId,
+            'message'  => $messageTest,
+            'stamp' => NULL
+        );
+        $chatMessageTG->insert($data);
 
-                return true;
+        return true;
     }
 
     public function indexAction()
     {
-        $this->layout('layout/myaccount');
+        $user = $this->getLoggedInUser();
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $messageTest = $request->getPost()->get('message');
+            $fromUserId = $user->id;
+            $this->sendMessage($messageTest, $fromUserId);
+            // to prevent duplicate entries on refresh
+            return $this->redirect()->toRoute('users/group-chat');
+        }
 
-                $user = $this->getLoggedInUser();
-                $request = $this->getRequest();
-                if ($request->isPost()) {
-                    $messageTest = $request->getPost()->get('message');
-                    $fromUserId = $user->id;
-                    $this->sendMessage($messageTest, $fromUserId);
-                    // to prevent duplicate entries on refresh
-                    return $this->redirect()->toRoute('users/group-chat');
-                }
+        //Prepare Send Message Form
+        $form    = new Form();
 
-                //Prepare Send Message Form
-                $form    = new Form();
+        $form->add(array(
+            'name' => 'message',
+            'attributes' => array(
+                'type'  => 'text',
+                'id' => 'messageText',
+                'required' => 'required'
+            ),
+            'options' => array(
+                'label' => 'Message',
+            ),
+        ));
 
-                $form->add(array(
-                    'name' => 'message',
-                    'attributes' => array(
-                        'type'  => 'text',
-                        'id' => 'messageText',
-                        'required' => 'required'
-                    ),
-                    'options' => array(
-                        'label' => 'Message',
-                    ),
-                ));
+        $form->add(array(
+            'name' => 'submit',
+            'attributes' => array(
+                'type'  => 'submit',
+                'value' => 'Send'
+            ),
+        ));
 
-                $form->add(array(
-                    'name' => 'submit',
-                    'attributes' => array(
-                        'type'  => 'submit',
-                        'value' => 'Send'
-                    ),
-                ));
+        $form->add(array(
+            'name' => 'refresh',
+            'attributes' => array(
+                'type'  => 'button',
+                'id' => 'btnRefresh',
+                'value' => 'Refresh'
+            ),
+        ));
 
-                $form->add(array(
-                    'name' => 'refresh',
-                    'attributes' => array(
-                        'type'  => 'button',
-                        'id' => 'btnRefresh',
-                        'value' => 'Refresh'
-                    ),
-                ));
-
-                return new ViewModel(array('form' => $form, 'userName' => $user->name));
+        return new ViewModel(array('form' => $form, 'userName' => $user->name));
     }
 
     public function messageListAction()

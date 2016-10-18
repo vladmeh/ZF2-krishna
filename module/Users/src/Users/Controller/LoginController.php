@@ -37,7 +37,6 @@ class LoginController extends AbstractActionController
 
     public function confirmAction()
     {
-        $this->layout('layout/myaccount');
         return new ViewModel(array(
             'user_email' => $this->getAuthService()->getStorage()->read()
         ));

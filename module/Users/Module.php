@@ -12,7 +12,11 @@ use Zend\Authentication\Adapter\DbTable as DbTableAuthAdapter;
 use Zend\Db\ResultSet\ResultSet;
 use Zend\Db\TableGateway\TableGateway;
 
-class Module
+use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
+use Zend\Mvc\ModuleRouteListener;
+use Zend\Mvc\MvcEvent;
+
+class Module implements AutoloaderProviderInterface
 {
     public function getConfig()
     {
@@ -28,6 +32,27 @@ class Module
                 ),
             ),
         );
+    }
+
+    public function onBootstrap(MvcEvent $e)
+    {
+        // You may not need to do this if you're doing it elsewhere in your
+        // application
+        $eventManager        = $e->getApplication()->getEventManager();
+
+        $moduleRouteListener = new ModuleRouteListener();
+        $moduleRouteListener->attach($eventManager);
+
+        $sharedEventManager = $eventManager->getSharedManager(); // The shared event manager
+
+        $sharedEventManager->attach(__NAMESPACE__, MvcEvent::EVENT_DISPATCH, function($e) {
+            $controller = $e->getTarget(); // The controller which is dispatched
+            $controllerName = $controller->getEvent()->getRouteMatch()->getParam('controller');
+
+            if (!in_array($controllerName, array('Users\Controller\Index', 'Users\Controller\Register', 'Users\Controller\Login'))) {
+                $controller->layout('layout/myaccount');
+            }
+        });
     }
 
 

@@ -40,12 +40,15 @@ class UploadManagerController extends AbstractActionController
 
     public function indexAction()
     {
-        $this->layout('layout/myaccount');
-
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
         $userTable = $this->getServiceLocator()->get('UserTable');
 
         $userEmail = $this->getAuthService()->getStorage()->read();
+
+        if(!$userEmail){
+            return $this->redirect()->toRoute('users');
+        }
+
         $user = $userTable->getUserByEmail($userEmail);
 
         $sharedUploads = $uploadTable->getSharedUploadsForUserId($user->id);
@@ -68,8 +71,6 @@ class UploadManagerController extends AbstractActionController
 
     public function uploadAction()
     {
-        $this->layout('layout/myaccount');
-
         return new ViewModel(array(
             'form' => $this->getServiceLocator()->get('UploadForm')
         ));
@@ -77,10 +78,13 @@ class UploadManagerController extends AbstractActionController
 
     public function processUploadAction()
     {
-        $this->layout('layout/myaccount');
-
         $userTable = $this->getServiceLocator()->get('UserTable');
         $user_email = $this->getAuthService()->getStorage()->read();
+
+        if(!$user_email){
+            return $this->redirect()->toRoute('users');
+        }
+
         $user = $userTable->getUserByEmail($user_email);
 
         $request = $this->getRequest();
@@ -125,8 +129,6 @@ class UploadManagerController extends AbstractActionController
 
     public function deleteAction()
     {
-        $this->layout('layout/myaccount');
-
         $uploadId = $this->params()->fromRoute('id');
         $uploadTable = $this->getServiceLocator()
             ->get('UploadTable');
@@ -142,7 +144,6 @@ class UploadManagerController extends AbstractActionController
 
     public function deleteShareAction()
     {
-        $this->layout('layout/myaccount');
         $shareId = $this->params()->fromRoute('id');
         $uploadTable = $this->getServiceLocator()
             ->get('UploadTable');
@@ -160,8 +161,6 @@ class UploadManagerController extends AbstractActionController
 
     public function editAction()
     {
-        $this->layout('layout/myaccount');
-
         $uploadId = $this->params()->fromRoute('id');
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
         $userTable = $this->getServiceLocator()->get('UserTable');
@@ -201,8 +200,6 @@ class UploadManagerController extends AbstractActionController
 
     public function processUploadShareAction()
     {
-        $this->layout('layout/myaccount');
-
         $uploadTable = $this->getServiceLocator()->get('UploadTable');
 
         $request = $this->getRequest();
@@ -237,8 +234,6 @@ class UploadManagerController extends AbstractActionController
 
     public function processUpdateAction()
     {
-        $this->layout('layout/myaccount');
-
         if (!$this->request->isPost()) {
             return $this->redirect()->toRoute('users/upload-manager');
         }

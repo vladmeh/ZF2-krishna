@@ -133,6 +133,10 @@ return array(
                 'route' => 'users',
             ),
             array(
+                'label' => 'Group Chat',
+                'route' => 'users/group-chat',
+            ),
+            array(
                 'label' => 'Manage Users',
                 'route' => 'users/user-manager',
             ),
