@@ -7,6 +7,7 @@ return array(
             'Users\Controller\Login' => 'Users\Controller\LoginController',
             'Users\Controller\UserManager' => 'Users\Controller\UserManagerController',
             'Users\Controller\UploadManager' => 'Users\Controller\UploadManagerController',
+            'Users\Controller\GroupChat' => 'Users\Controller\GroupChatController'
         ),
     ),
 
@@ -36,7 +37,6 @@ return array(
                 'child_routes' => array(
                     'login' => array(
                         'type'    => 'Segment',
-                        'may_terminate' => true,
                         'options' => array(
                             'route'    => '/login[/:action]',
                             'constraints' => array(
@@ -50,7 +50,6 @@ return array(
                     ),
                     'register' => array(
                         'type'    => 'Segment',
-                        'may_terminate' => true,
                         'options' => array(
                             'route'    => '/register[/:action]',
                             'constraints' => array(
@@ -64,7 +63,6 @@ return array(
                     ),
                     'user-manager' => array(
                         'type'    => 'Segment',
-                        'may_terminate' => true,
                         'options' => array(
                             'route'    => '/user-manager[/:action[/:id]]',
                             'constraints' => array(
@@ -79,7 +77,6 @@ return array(
                     ),
                     'upload-manager' => array(
                         'type'    => 'Segment',
-                        'may_terminate' => true,
                         'options' => array(
                             'route'    => '/upload-manager[/:action[/:id]]',
                             'constraints' => array(
@@ -88,6 +85,20 @@ return array(
                             ),
                             'defaults' => array(
                                 'controller' => 'Users\Controller\UploadManager',
+                                'action'     => 'index',
+                            ),
+                        ),
+                    ),
+                    'group-chat' => array(
+                        'type'    => 'Segment',
+                        'options' => array(
+                            'route'    => '/group-chat[/:action[/:id]]',
+                            'constraints' => array(
+                                'action'     => '[a-zA-Z][a-zA-Z0-9_-]*',
+                                'id'     => '[a-zA-Z0-9_-]*',
+                            ),
+                            'defaults' => array(
+                                'controller' => 'Users\Controller\GroupChat',
                                 'action'     => 'index',
                             ),
                         ),

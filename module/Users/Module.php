@@ -79,6 +79,10 @@ class Module
                     $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
                     return new TableGateway('uploads_sharing', $dbAdapter);
                 },
+                'ChatMessagesTableGateway' => function ($sm) {
+                    $dbAdapter = $sm->get('Zend\Db\Adapter\Adapter');
+                    return new TableGateway('chat_messages', $dbAdapter);
+                },
 
                 // FORMS
                 'LoginForm' => function ($sm) {
